@@ -1,0 +1,14 @@
+<html>
+  <head>
+    {% if title %}
+    <title>{{title}} - eduIntervention</title>
+    {% else %}
+    <title>Welcome to eduIntervention</title>
+    {% endif %}
+  </head> 
+  <body>
+    <div>eduIntervention: <a href='/index'>Home</a></div>
+    <hr>
+    {% block content %}{% endblock %}
+  </body>
+</html>
