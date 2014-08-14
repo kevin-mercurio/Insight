@@ -36,21 +36,36 @@
   <div class="container">
     <div class="jumbotron">
         <h1>edu Intervention</h1>
-        <p>Result for this student:</p>
-        {% for item in theList %} 
-        <p>{{item}}</p>
-        {% endfor %} 
-    </div>
-    <div class="jumbotron">
-      <IMG SRC="/Users/kevinmercurio/Desktop/Insight/Behavior.eps" ALT="some text" WIDTH=320 HEIGHT=320>
-    
+        <div class="container">
+          <p>Risk Evaluaition of Students:</p>
+          {% for item in theList %} 
+          <p>{{item}}</p>
+          {% endfor %} 
+        </div>
     </div>
     <div class="container">
         <h1>Suggested Actions for this Student</h1>
         {% for item in theActions %} 
         <p>{{item}}</p>
         {% endfor %} 
+    
+    <form  action="/AddStudent" >
+      <div>
+        <button type="submit" class="btn btn-primary">Next Student</button>
+      </div>
+    </form>
+    
+    <form  action="/clear" >
+      <div>
+        <button type="submit" class="btn btn-primary">Clear Student List</button>
+      </div>
+    </form>
       
+    
+    </div>
+    <div class="container">
+      <!--<IMG src="../images/Behavior.eps" ALT="some text" WIDTH=320 HEIGHT=320> -->
+      <IMG src="http://pbs.twimg.com/profile_images/378800000221536589/db6ebf8e038f49a28110c84632ca3ed1_400x400.png" ALT="some text" WIDTH=320 HEIGHT=320>
     
     </div>
 
