@@ -2770,7 +2770,7 @@ fieldset[disabled] .btn {
 }
 .btn-default {
   color: #333;
-  background-color: #fff;
+  background-color: #C8C8C8;
   border-color: #ccc;
 }
 .btn-default:hover,
@@ -2780,7 +2780,7 @@ fieldset[disabled] .btn {
 .open > .dropdown-toggle.btn-default {
   color: #333;
   background-color: #e6e6e6;
-  border-color: #adadad;
+  border-color: #B8B8B8 ;
 }
 .btn-default:active,
 .btn-default.active,
@@ -4548,7 +4548,7 @@ a.list-group-item.active > .badge,
   padding: 30px;
   margin-bottom: 30px;
   color: inherit;
-  background-color: #eee;
+  background-color: #C8C8C8;
 }
 .jumbotron h1,
 .jumbotron .h1 {

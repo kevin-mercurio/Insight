@@ -3,7 +3,7 @@
 <link href="../static/css/bootstrap.css" rel="stylesheet">
 
 <!-- Custom styles for this template -->
-<link href="../static/css/starter-template.css" rel="stylesheet">
+<link href="../static/css/landing.css" rel="stylesheet">
 
 <html lang="en">
   <head>
@@ -14,53 +14,51 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>edu Intervention</title>
+    <title>eduIntervention</title>
 
 
    <body>
-       <div class="navbar navbar-inverse navbar-fixed-top " role="navigation">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="#">eduIntervention</a>
+   <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">edu Intervention</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/AddStudent">Use it!</a>
+                    </li>
+                    <li>
+                        <a href="/About">About</a>
+                    </li>
+                    <li>
+                        <a href="/contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
         </div>
-        <div class="collapse navbar-collapse">
-          <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#contact">Contact</a></li>
-          </ul>
-        </div><!--/.nav-collapse -->
-      </div>
-    </div>
-  <div class="container">
+        <!-- /.container -->
+    </nav>
+
+
+
+<div class="container">
     <div class="jumbotron">
-        <h1>edu Intervention</h1>
-        <p>A tool for high school administrators to identify students at risk of dropping out.</p>
-
- <!-- </div>
-  
-    <form class="navbar-form text-center" action="/result" method="GET">
-    Enter math score 2:
-    <input type="text" name="math2" placeholder="[-3,3]">
-    Enter behavior score:
-    <input type="text" name="behavior" placeholder="[-3,3]">
-    Enter parend education:
-    <input type="text" name="paredu" placeholder="[1,5]">
-    
-      <div>
-        <button type="submit" class="btn btn-primary">Evaluate Risk</button>
-      </div>
-    </form>
-  </div>
-  --!>
-
- <form  action="/result" method="GET">
+        <h2>Data Entry Page</h2>
+        <p>Enter student data or generate an example student.</p>
+    </div>
+  <div class = "container"> 
+  <form  action="/result" method="GET">
     <div class="form-group">
       <label for="ID">Student ID Number</label>
       <input type="text" id="ID" name='ID' placeholder="12345">
@@ -70,8 +68,16 @@
       <input type="text" id="mathval2" name='math2' placeholder="[-3,3]">
     </div>
     <div class="form-group">
-      <label for="behavior">Student Behavior Score</label>
-      <input type="text" id="behavior" name='behave1' placeholder="[-3,3]">
+      <label for="suspval">Student Suspensions in last 6 months</label>
+      <input type="text" id="suspval" name='susp' placeholder="[-3,3]">
+    </div>
+    <div class="form-group">
+      <label for="skipval">Student Classes Skipped in last 6 months</label>
+      <input type="text" id="skipval" name='skip' placeholder="[-3,3]">
+    </div>
+    <div class="form-group">
+      <label for="behavior">Student Absences in last 6 Months</label>
+      <input type="text" id="behavior" name='absent' placeholder="[-3,3]">
     </div>
     <div class="form-group">
       <label for="age">Student Age</label>
@@ -79,21 +85,29 @@
     </div>
     <div class="form-group">
       <label for="numhs">Number of High Schools Attended</label>
-      <input type="text" id="numhs" name='numhs1' placeholder="[1,6]">
+      <input type="text" id="numhs" name='numhs' placeholder="[1,6]">
     </div>
     <div class="form-group">
       <label for="frdrop">Number of Non-Completing Friends</label>
-      <input type="text" id="frdrop" name='frdrop1' placeholder="[0,6]">
+      <input type="text" id="frdrop" name='frdrop' placeholder="[0,6]">
     </div>
     <div class="form-group">
       <label for="SES">Socio-Economic Factor</label>
-      <input type="text" id="SES" name='SES1' placeholder="[-3,3]">
+      <input type="text" id="SES" name='SES' placeholder="[-3,3]">
+    </div>
+    <div class="form-group">
+      <label for="hhnumval">Size of Student Household</label>
+      <input type="text" id="hhnumval" name='hhnum' placeholder="[-3,3]">
+    </div>
+    <div class="form-group">
+      <label for="dropprogval">Does the school have a dropout prevention program?</label>
+      <input type="text" id="dropprogval" name='dropprog' placeholder="yes">
     </div>
   <div>
-    <button type="submit" class="btn btn-primary">Evaluate Risk</button>
+    <button type="submit" class="btn btn-default btn-lg">Evaluate Risk</button>
   </div>
 
  </form>
-
+    </div>
 
 </body>
