@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 from pandas import DataFrame
+import collections
 import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib.backends.backend_pdf import PdfPages
@@ -23,66 +24,64 @@ from sklearn.pipeline import Pipeline
 # setup options here
 import getopt
 
-#def Predict_Final(behave = [0.71, -1.0, -1.35], math1 = [-1.5, 1.5, 0], math2 = [0.9774, 2.1, 2.0], 
-#                  age = [3, 5, 6], paredu = [4, 2, 4], ses = [1.518, -1.5, 1.5],
-#                  frdrop = [0, 1, 2], absent = [0, 1, 0], numhs = [1, 2, 1], mathquint = [1,5,2] ):
-def Predict_Final(behave = [0.71], math1 = [-1.5], math2 = [0.9774], 
-                  age = [3], paredu = [4], ses = [1.518],
-                  frdrop = [0], absent = [0], numhs = [1], mathquint = [1] ):
+def Predict_Final(ID = [12345], absent = [1],  math2 = [0.9774], 
+                  age = [4],  ses = [1.518],
+                  skip = [0],  susp = [1.1],
+                  hhnum = [4],  frdrop = [0], 
+                  numhs = [1.3], dummy = [0] ):
 
-  #let's open the  model and best features that we save from Predict()
-  best_features = []
-  with open('best_features.p','r') as f:
-    best_features_temp = pk.load(f)
 
-    for i,feat in enumerate(best_features_temp):
-      #if i < 10:
-      best_features.append(feat)
-
-  with open('model.p','r') as f:
+  with open('DropModel.p','r') as f:
     clf = pk.load(f)
-    #print clf.coef_
+    print clf.coef_
     #two coeff are zero--why?
 
   #Make a dataframe from the input data, this comes from the web entry form
+  's2absent', 'x2txmquint', 's2birthyr', 's2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch', 's2skipclass', 's2inschsusp', 'x2ses', 'x1locale'
   data = {
-          'x2behavein' : behave,
-          'x1txmth' : math1,
-          'x2txmquint' : mathquint,
+          's2absent' : absent,
+          'x2txmquint' : math2,
           's2birthyr' : age,
-          'x2ses' : ses,
           's2frdropout' : frdrop,
-          'x2txmth' : math2,
-          'x2numhs' : numhs}
-  print data
+          'x2numhs' : numhs,
+          'x2hhnumber' : hhnum,
+          's2satnum' :  dummy,
+          's2latesch' : dummy,
+          's2skipclass' : skip,
+          's2inschsusp' : susp,
+          'x2ses' : ses,
+          'x1locale' :dummy}
   #this actually makes the dataframe and sets the column names
-  Test = DataFrame(data, columns = ['x2behavein', 'x1txmth', 'x2txmquint', 's2birthyr', 'x2ses', 's2frdropout', 'x2txmth', 'x2numhs'])
+  #Test = DataFrame(data, columns = ['s2absent', 'x2txmquint', 's2birthyr', 'x2ses', 's2frdropout', 's2skipclass','s2inschsusp','x2hhnumber', 's2satnum', 'x1locale',  's2latesch','x2numhs'])
+  Test = DataFrame(data, columns = ['s2absent', 'x2txmquint', 's2birthyr', 's2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch', 's2skipclass','s2inschsusp','x2ses','x1locale'])
   print Test
-  print best_features
-  if (len(best_features)==Test.shape[1]):
-    print 'ok'
-  else:
-    print 'not ok'
-    return 'mismatch'
 
   #predict!
   probs = clf.predict_proba(Test)
   preds = clf.predict(Test)
   print probs, preds
+  Test['stu_id'] = ID
+  StuList = Test['stu_id'].get_values()
 
   #store and sort the probabilities and associated student identfication
   P = []
-  for p in probs: 
+  StuID = []
+  for i, p in enumerate(probs): 
     P.append(p[1])
-  StuVect = []
-  for i in sorted(enumerate(P), key=lambda x:x[1], reverse=True):
-    StuVect.append(i)
-
-  #Do something to store and return the results for each student / set of students
+    StuID.append(StuList[i])
+ 
+  ResultDict = dict( zip(P,StuID) )
+  oResultDict = collections.OrderedDict(sorted(ResultDict.items(), reverse=True))
   Result = []
-  for p in (StuVect):
-    Result.append('Student #'+str(p[0])+' has a '+str(100*round(p[1],2))+'% probability to leave school')
-    Result.append('Student #'+str(p[0])+' has a '+str(100*round(p[1],2))+'% probability to leave school')
+
+  def RiskLev(risk):
+    if risk < 0.2: return 'LOW'
+    elif risk < 0.5: return 'MILD'
+    else: return 'HIGH'
+
+  for key, value in oResultDict.iteritems():
+    print 'key = %s and value = %s' % (key, value)
+    Result.append(('Student %s has a '+RiskLev(key) +' risk of leaving school') % int(value))
 
   print Result
   #Return a vector of messages, ranking the students in descending order of dropout risk
@@ -90,19 +89,18 @@ def Predict_Final(behave = [0.71], math1 = [-1.5], math2 = [0.9774],
 
 
 #This function generates the model
-def Predict(SampleSize=10000, studentID = 10111, MakePlots=False, studentIDs=[10110, 10111]):  
+def Predict(SampleSize=10000, studentID = 10111, MakePlots=True, studentIDs=[10110, 10111]):  
 
   #Setup the file for saving the variable plots
   pp = PdfPages('multipage.pdf')
   #Read in too much data about students, nrows limits the size of the sample
   dfBig = pd.read_csv('/Users/kevinmercurio/Downloads/HSLS_2009_v2_0_CSV_Datasets/hsls_09_student_v2_0.csv',nrows=SampleSize )
   
+  print dfBig.shape[0], 'Total nSamples'
   #studentIDs
   Livedf = dfBig.loc[dfBig['stu_id'].isin(studentIDs)]
-#  print Livedf['stu_id']
+
   
-  #Remove non-responders (<0)
-  #Remove homeschoolers for now (==3)
   df2 = dfBig.loc[dfBig['s2enrollhs12']>0]
   df3 = df2.loc[df2['s2enrollhs12']<3]
   df4 = df3.loc[df3['x2txmth']>-8] 
@@ -111,33 +109,71 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=False, studentIDs=[10
   df7 = df6.loc[df6['s2birthyr']>-1]  
   df8 = df7.loc[df7['x1txmth']>-8]  
   df9 = df8.loc[df8['x1paredu']>-1]  
-  df10 = df9.loc[df9['x2scieff']>-7]  
-  df11 = df10.loc[df10['x2sciid']>-8]  
-  df12 = df11.loc[df11['x2behavein']>-8]  
+  df12 = df9.loc[df9['x2behavein']>-8]  
   df13 = df12.loc[df12['x1txmquint']>-8]  
   df14 = df13.loc[df13['s2frdropout']>-8]  
   df15 = df14.loc[df14['s2satnum']>-8]  
   df16 = df15.loc[df15['x2hhnumber']>-8]  
-  df17 = df16.loc[df16['x2txmquint']>-8]  
-  df18 = df17.loc[df17['s1talkprob']>-8]  
+  df18 = df16.loc[df16['x2txmquint']>-8]  
   print df18.shape[0]
 
   #Make separate df for dropouts and not dropouts
   df_0 = df18.loc[df18['s2enrollhs12']==1] 
   df_1 = df18.loc[df18['s2enrollhs12']==2] 
 
-  df = df18[['stu_id', 's2enrollhs12', 'x1stuedexpct','x1sciid','s2absent', 'x2behavein','x1txmth', 'x1txmquint', 'x2txmquint', 's2birthyr', 'x1paredu','x2ses','s2frdropout', 'x2txmth','x2scieff', 'x2numhs', 'x2hhnumber', 's2satnum', 'x1locale','s1hrmhomewk', 's1hrshomewk', 's1hrothhomwk', 's1talkprob']]
+  df = df18[['stu_id', 's2enrollhs12', 's2absent',  'x2txmquint', 's2birthyr','s2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch','s2skipclass','s2inschsusp',  'x2ses' , 'x1locale'  ]]
   features = df.columns[2:24]
-  
+  print features 
   
   #Set a bunch of variables
   if(MakePlots):  
   #Plot things
+    ap, axarr = plt.subplots(2, sharex=True)
+    axarr[0].hist(df_0['s2friendsdo'].values,bins=3,range=(0,3),normed=True,color='b')
+    axarr[1].set_title('Left because friends did')
+    axarr[1].hist(df_1['s2friendsdo'].values,bins=3,range=(0,3),normed=True,color='r')
+    ap.savefig('friendsDo.eps', format = 'eps')
+
+    ao, axarr = plt.subplots(2, sharex=True)
+    axarr[0].hist(df_0['s2gedeasier'].values,bins=3,range=(0,3),normed=True,color='b')
+    axarr[1].set_title('Left because alternate was easier')
+    axarr[1].hist(df_1['s2gedeasier'].values,bins=3,range=(0,3),normed=True,color='r')
+    ao.savefig('gedeasier.eps', format = 'eps')
+
+    an, axarr = plt.subplots(2, sharex=True)
+    axarr[0].hist(df_0['s2poorgrade'].values,bins=3,range=(0,3),normed=True,color='b')
+    axarr[1].set_title('Leave for grades')
+    axarr[1].hist(df_1['s2poorgrade'].values,bins=3,range=(0,3),normed=True,color='r')
+    an.savefig('poorgrades.eps', format = 'eps')
+
+    am, axarr = plt.subplots(2, sharex=True)
+    axarr[0].hist(df_0['s2supportfam'].values,bins=3,range=(0,3),normed=True,color='b')
+    axarr[1].set_title('Leave for family')
+    axarr[1].hist(df_1['s2supportfam'].values,bins=3,range=(0,3),normed=True,color='r')
+    am.savefig('toSupport.eps', format = 'eps')
+
+    al, axarr = plt.subplots(2, sharex=True)
+    axarr[0].hist(df_0['s2suspendexp'].values,bins=3,range=(0,3),normed=True,color='b')
+    axarr[1].set_title('Leave for behavior')
+    axarr[1].hist(df_1['s2suspendexp'].values,bins=3,range=(0,3),normed=True,color='r')
+    al.savefig('susp_exp.eps', format = 'eps')
+
+    ak, axarr = plt.subplots(2, sharex=True)
+    axarr[0].hist(df_0['s2dislikesch'].values,bins=3,range=(0,3),normed=True,color='b')
+    axarr[1].set_title('Leave for dislike')
+    axarr[1].hist(df_1['s2dislikesch'].values,bins=3,range=(0,3),normed=True,color='r')
+    ak.savefig('dislike.eps', format = 'eps')
+
+    aj, axarr = plt.subplots(2, sharex=True)
+    axarr[0].hist(df_0['s2towork'].values,bins=3,range=(0,3),normed=True,color='b')
+    axarr[1].set_title('Leave to work')
+    axarr[1].hist(df_1['s2towork'].values,bins=3,range=(0,3),normed=True,color='r')
+    aj.savefig('toWork.eps', format = 'eps')
+
     ai, axarr = plt.subplots(2, sharex=True)
-    axarr[0].hist(df_0['s1talkprob'].values,bins=9,range=(0,10),normed=True,color='b')
+    axarr[0].hist(df_0['s1talkprob'].values,bins=10,range=(0,10),normed=True,color='b')
     axarr[0].set_title('student_teacher_talk')
-    axarr[0].set_ylabel('Arbitrary')
-    axarr[1].hist(df_1['s1talkprob'].values,bins=9,range=(0,10),normed=True,color='r')
+    axarr[1].hist(df_1['s1talkprob'].values,bins=10,range=(0,10),normed=True,color='r')
     ai.savefig('talk_teacher.eps', format = 'eps')
 
     ah, axarr = plt.subplots(2, sharex=True)
@@ -283,10 +319,10 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=False, studentIDs=[10
     p.savefig('SES.eps', format = 'eps')
     
     q, axarr11 = plt.subplots(2, sharex=True)
-    axarr11[0].hist(df_0['p1honors'].values,bins=5,range=(-1,4),normed=True,color='b')
-    axarr11[0].set_title('enrolled in honors')
-    axarr11[1].hist(df_1['p1honors'].values,bins=5,range=(-1,4),normed=True,color='r')
-    q.savefig('honors.eps', format = 'eps')
+    axarr11[0].hist(df_0['s2frdropout'].values,bins=6,range=(0,6),normed=True,color='b')
+    axarr11[0].set_title('Friends Dropping out')
+    axarr11[1].hist(df_1['s2frdropout'].values,bins=6,range=(0,6),normed=True,color='r')
+    q.savefig('frdropout.eps', format = 'eps')
     
     #Close the pdf doc with all the figures
     pp.close()
@@ -294,15 +330,17 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=False, studentIDs=[10
 
   #Do the RF Classification here
   Y = df['s2enrollhs12'].get_values()
-  X = df[df.columns[df.columns.isin(['x1stuedexpct','x1sciid','s2absent', 'x2behavein','x1txmth', 'x1txmquint', 'x2txmquint', 's2birthyr', 'x1paredu','x2ses','s2frdropout', 'x2txmth','x2scieff', 'x2numhs', 'x2hhnumber', 's2satnum', 'x1locale','s1hrmhomewk', 's1hrshomewk', 's1hrothhomwk', 's1talkprob'])]].get_values()
-
+  df = df18[['stu_id', 's2enrollhs12', 's2absent',  'x2txmquint', 's2birthyr','s2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch','s2skipclass','s2inschsusp', 'x2ses' , 'x1locale'  ]]
+  Xcol = df[df.columns[df.columns.isin(['s2absent',  'x2txmquint', 's2birthyr','s2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch','s2skipclass','s2inschsusp',   'x2ses' , 'x1locale', ])]].columns
+  print Xcol, 'Xcol'
+  X = df[df.columns[df.columns.isin(['s2absent',  'x2txmquint', 's2birthyr','s2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch','s2skipclass','s2inschsusp',   'x2ses' , 'x1locale' ])]].get_values()
   #set up RF
   cross_validation_object = cross_validation.StratifiedKFold(Y, n_folds = 4)
-  features = df[df.columns[df.columns.isin(['x1stuedexpct','x1sciid','s2absent', 'x2behavein','x1txmth', 'x1txmquint', 'x2txmquint', 's2birthyr', 'x1paredu','x2ses','s2frdropout', 'x2txmth','x2scieff', 'x2numhs', 'x2hhnumber', 's2satnum', 'x1locale','s1hrmhomewk', 's1hrshomewk', 's1hrothhomwk', 's1talkprob'])]].columns.tolist()
+  features = df[df.columns[df.columns.isin(['s2absent',  'x2txmquint', 's2birthyr','s2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch','s2skipclass','s2inschsusp',  'x2ses' , 'x1locale'])]].columns.tolist()
 
   def BestFeat(x,feat,top_ten_indices):
     location = np.where(np.array(feat) == x)
-    if location in top_ten_indices[0:8]:
+    if location in top_ten_indices[0:10]:
       return 1
     else:
      return 0
@@ -324,21 +362,16 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=False, studentIDs=[10
       print("%d. feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
 
     probs = rf_fit.predict_proba(X[train])
-    #fpr, tpr, thresh = roc_curve(Y[train], probs[:,1])
-    #print 'rf roc_auc', auc(fpr,tpr)
     preds1 = rf_fit.predict(X[test] )
     print pd.crosstab(Y[test], preds1, rownames = ['actual'], colnames = ['pred'])
 
-   #Test LogiReg
+  #Test LogiReg
   print 'now try logistic regression'
   for train,test in cross_validation_object:
     log_fit = LogisticRegression(C=0.15, penalty = 'l1', class_weight = 'auto')
     log_fit.fit(X[train], Y[train])
     
     probs = log_fit.predict_proba(X[test])
-    #fpr, tpr, thresh = roc_curve(Y[test], probs[:,1])
-    #roc_auc = auc(fpr,tpr)
-    #print roc_auc
     preds1 = log_fit.predict(X[test] )
     print pd.crosstab(Y[test], preds1, rownames = ['actual'], colnames = ['pred'])
 
@@ -346,7 +379,7 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=False, studentIDs=[10
 
   #Dump These features to pk
   best_features = [features[i] for i in np.where(np.mean(ranking,axis =0) > 0.1)[0]]
-  print 'best features' , best_features
+  #print 'best features' , best_features
   with open('best_features.p','w') as f:
     pk.dump(best_features,f)
 
@@ -354,67 +387,60 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=False, studentIDs=[10
   with open('best_features.p','r') as f:
     best_features = pk.load(f)
 
-  X_new = df[df.columns[df.columns.isin(best_features)]]
+  X_new = X 
+  #X_new = df[df.columns[df.columns.isin(best_features)]]
   Y_new = Y
-  cross_validation_object = cross_validation.StratifiedKFold(Y_new, n_folds = 4)
-  rf_curve = learning_curve.learning_curve(RandomForestClassifier(100, n_jobs=2),
-    X_new,Y_new, 
-    cv = cross_validation_object)
-  
-  #logistic_curve = learning_curve.learning_curve(LogisticRegression(C=0.1),X_new,Y_new, train_sizes = np.array([0.1,0.3,0.5,1]), cv = cross_validation_object, scoring = 'roc_auc')
-
-  if(MakePlots):
-    fig, axes = plt.subplots(nrows = 2)
-    axes[0].plot(rf_curve[0],np.mean(rf_curve[1],axis = 1))
-    axes[0].plot(rf_curve[0],np.mean(rf_curve[2],axis = 1))
-    axes[0].set_title('Random Forest')
-    axes[0].set_ylabel('Area under ROC curve')
-    axes[0].set_ylim([0.85,1.01])
-
-    #axes[1].plot(logistic_curve[0], np.mean(logistic_curve[1], axis = 1))
-    #axes[1].plot(logistic_curve[0], np.mean(logistic_curve[2], axis = 1))
-    #axes[1].set_title('Logistic Regression')
-    #axes[1].set_ylabel('Area under ROC curve')
-    #axes[1].set_xlabel('No. of Training Samples')
-    #axes[1].set_ylim([0.85,1.01])
-    fig.savefig('AUCs.eps', format = 'eps')
-
-  
-  tuned_parameters = [{'C': [0.05,0.1,0.15,0.2], 'penalty': ['l1','l2']}]
-
-  #grid_search_object = GridSearchCV(model, tuned_parameters, cv = cross_validation_object)
-#  grid_search_object.fit(X_new,Y_new)  # use fit if last item in pipeline is fit.
 
 
   #Set a final model
-  #final_model = RandomForestClassifier(100, n_jobs=2)
-  #final_model.fit(X_new,Y_new, sample_weights)
   half = int(X_new.shape[0]*.75)
   X_new_train, X_new_test = X_new[:half], X_new[half:]
   Y_new_train, Y_new_test = Y_new[:half], Y_new[half:]
 
-
-  final_model = LogisticRegression(C=0.15,penalty = 'l1', class_weight = 'auto')
+  final_model = LogisticRegression(C=0.07,penalty = 'l1', class_weight = 'auto')
+  #final_model = LogisticRegression(C=1,penalty = 'l1', class_weight = 'auto')
   final_model.fit(X_new_train,Y_new_train)
-#  sample_weights = np.array([45 if i == 2 else 0.5 for i in Y_new_train])
   probs = final_model.predict_proba(X_new_test)
   preds = final_model.predict(X_new_test)
+  print df.columns[2:24]
+  print final_model.coef_
   print pd.crosstab(Y_new_test, preds, rownames = ['actual'], colnames = ['pred'])
   fpr, tpr, thresh = roc_curve(Y_new_test, probs[:,1], pos_label=2)
   roc_auc = auc(fpr,tpr)
   print 'Area under the ROC curve: %f' % roc_auc
-  '''
-  plt.clf()
-  plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
-  plt.plot([0, 1], [0, 1], 'k--')
-  plt.xlim([0.0, 1.0])
-  plt.ylim([0.0, 1.0])
-  plt.xlabel('False Positive Rate')
-  plt.ylabel('True Positive Rate')
-  plt.title('Receiver operating characteristic')
-  plt.legend(loc="lower right")
-  plt.show()
- '''
+
+  #Make a plot with the regression coefficients
+  Coefs = final_model.coef_
+  CoefV = []
+  CoefN = []
+  for p in Coefs:
+    for i,j in enumerate(p):
+      CoefV.append(j)
+      CoefN.append('')
+  #'s2absent', 'x2txmquint', 's2birthyr', 's2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch', 's2skipclass', 's2inschsusp', 'c2dropout', 'x2ses', 'x1race', 'x1locale', 'x2scieff', 's2wohwdn'
+  Vals = df.columns[2:24]
+  print Vals.tolist()
+  print len(CoefV)
+  fig, ax  = plt.subplots()
+  index = np.arange(len(Vals))
+  plt.bar(index, CoefV, width=.9)
+  pl.xticks(index, CoefN)
+  #pl.xticks(index, Vals.tolist())
+  fig.savefig('test.eps', format = 'eps')
+  #plt.show() 
+
+  #print the ROC Curve for the final model with a 75/25 train/test split
+  #plt.clf()
+  #plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
+  #plt.plot([0, 1], [0, 1], 'k--')
+  #plt.xlim([0.0, 1.0])
+  #plt.ylim([0.0, 1.0])
+  #plt.xlabel('False Positive Rate')
+  #plt.ylabel('True Positive Rate')
+  #plt.title('Receiver operating characteristic')
+  #plt.legend(loc="lower right")
+  #plt.show()
+ 
   #Dump the final model to pk
   with open('model.p','w') as f:
     print 'dump model to pickle'
@@ -423,9 +449,8 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=False, studentIDs=[10
   return 'done  with model'
 
 def main(argv):
-#  try:
-  opts, args = getopt.getopt(argv,'n:F', ['num=', 'final='])
 
+  opts, args = getopt.getopt(argv,'n:F', ['num=', 'final='])
  
   for opt, arg in opts:
     print opt, arg
