@@ -12,7 +12,6 @@ absentl = []
 skipl = []
 suspl = []
 hhnuml = []
-dropprogl = []
 dummyl = []
 
 @app.route("/")
@@ -43,7 +42,6 @@ def homepage():
   skipl = []
   suspl = []
   hhnuml = []
-  dropprogl = []
   dummyl = []
   return render_template("home2.html")
 
@@ -52,47 +50,106 @@ def resultpage():
   theActions = []
   ID = float(request.args.get('ID'))
   math2 = float(request.args.get('math2'))
-  age1 = int(request.args.get('age1'))
+  agetemp = request.args.get('age')
+
   #The age is non-intuituve - correct it
-  if age1 == 15:
+  if agetemp == '15 and under':
     age1 = 7
-  if age1 == 16:
+  elif agetemp == '16':
     age1 = 6
-  if age1 == 17:
+  elif agetemp == '17':
     age1 = 5
-  if age1 == 18:
+  elif agetemp == '18':
     age1 = 4
-  elif age1 == 19:
+  elif agetemp == '19':
     age1 = 3
-  elif age1 == 20:
+  elif agetemp == '20':
     age1 = 2
-  elif age1 == 21:
+  elif agetemp == '21':
     age1 = 1
-  elif age1 ==22:
+  elif agetemp =='22+':
     age1 = 0
-  else: age1 = 23
-  numhs1 = int(request.args.get('numhs'))
-  SES1 = float(request.args.get('SES'))
+  print age1, 'age'
+  SES1 = request.args.get('SES')
+  #prepare inputs for SES
+  if SES1 == '-2.0 to -1.5':
+    SES1 = -1.6
+  elif SES1 == '-1.5 to -1.0':
+    SES1 = -1.3
+  elif SES1 == '-1.0 to -0.5':
+    SES1 = -0.7
+  elif SES1 == '-0.5 to 0':
+    SES1 = -0.3
+  elif SES1 == '0 to 0.5':
+    SES1 = 0.25
+  elif SES1 == '0.5 to 1.0':
+    SES1 = -0.72
+  elif SES1 == '1.0 to 1.5':
+    SES1 = 1.25
+  else: 
+    SES1 = 1.6
+
   frdrop1 = int(request.args.get('frdrop'))
-  absent1 = float(request.args.get('absent'))
-  susp1 = float(request.args.get('susp'))
-  dropprog1 = (request.args.get('dropprog'))
-  if dropprog1 == 'yes' or dropprog1 == 'Yes' : dropprog1 = 1
-  else: dropprog1 = 0
+
   dummy1 = 0 
-  hhnum1 = float(request.args.get('hhnum'))
-  skip1 = float(request.args.get('skip'))
+ 
+  # prepare inputs for hhnum
+  if request.args.get('hhnum') == '8+' :
+    hhnum1 = 8
+  else: hhnum1 = float(request.args.get('hhnum'))
+
+  # prepare inputs for numhs
+  if request.args.get('numhs') == '5+' :
+    numhs1 = 5
+  else: numhs1 = float(request.args.get('numhs'))
+  
+  # prepare inputs for skip
+  if request.args.get('skip') == '10+' :
+    skip1 = 4
+  elif request.args.get('skip') == '7-9' :
+    skip1 = 3
+  elif request.args.get('skip') == '3-6' :
+    skip1 = 2
+  elif request.args.get('skip') == '1-2' :
+    skip1 = 1
+  elif request.args.get('skip') == '0' :
+    skip1 = 0
+
+  # prepare inputs for absent
+  if request.args.get('absent') == '10+' :
+    absent1 = 4
+  elif request.args.get('absent') == '7-9' :
+    absent1 = 3
+  elif request.args.get('absent') == '3-6' :
+    absent1 = 2
+  elif request.args.get('absent') == '1-2' :
+    absent1 = 1
+  elif request.args.get('absent') == '0' :
+    absent1 = 0
+
+  # prepare inputs for susp
+  if request.args.get('susp') == '10+' :
+    susp1 = 4
+  elif request.args.get('susp') == '7-9' :
+    susp1 = 3
+  elif request.args.get('susp') == '3-6' :
+    susp1 = 2
+  elif request.args.get('susp') == '1-2' :
+    susp1 = 1
+  elif request.args.get('susp') == '0' :
+    susp1 = 0
  
   #are they ok?
-  print request.args.get('ID')
-  print request.args.get('absent')
-  print request.args.get('frdrop')
-  print request.args.get('math2')
-  print request.args.get('SES')
-  print request.args.get('age1')
-  print request.args.get('numhs')
-  print request.args.get('hhnum')
-  print request.args.get('numhs')
+  print ID
+  print absent1
+  print frdrop1
+  print math2
+  print SES1
+  print age1
+  print susp1
+  print numhs1
+  print hhnum1
+  print skip1
 
   IDl.append(ID)
   math2l.append(math2)
@@ -101,14 +158,13 @@ def resultpage():
   hhnuml.append(hhnum1)
   SESl.append(SES1)
   frdropl.append(frdrop1)
-  dropprogl.append(dropprog1)
   dummyl.append(dummy1)
   absentl.append(absent1)
   suspl.append(susp1)
   skipl.append(skip1)
 
   # This is the result...
-  theList = Predict_Final(ID = IDl, math2=math2l, age=age1l, absent=absentl, skip=skipl, susp = suspl,  numhs=numhsl, ses=SESl, frdrop=frdropl, dropprog=dropprogl, hhnum=hhnuml, dummy=dummyl)  
+  theList = Predict_Final(ID = IDl, math2=math2l, age=age1l, absent=absentl, skip=skipl, susp = suspl,  numhs=numhsl, ses=SESl, frdrop=frdropl, hhnum=hhnuml, dummy=dummyl)  
   # Do you want to build the actions here or in the other class?
   if absent1 > 4:
     theActions.append('The student is missing many days, investigate why.')

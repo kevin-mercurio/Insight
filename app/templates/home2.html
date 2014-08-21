@@ -60,54 +60,128 @@
   <div class = "container"> 
   <form  action="/result" method="GET">
     <div class="form-group">
-      <label for="ID">Student ID Number</label>
+      <label for="ID">Student ID Number:</label>
       <input type="text" id="ID" name='ID' placeholder="12345">
     </div>
+      <label for="mathval2">Math Quintile:</label>
     <div class="form-group">
-      <label for="mathval2">Math Score</label>
-      <input type="text" id="mathval2" name='math2' placeholder="[-3,3]">
+      <select name = "math2" id=math2">
+      <option>1</option>
+      <option selected>2</option>
+      <option>3</option>
+      <option>4</option>
+      <option>5</option>
+      </select>
     </div>
+      <label for="suspval">Student Suspensions in last 6 months:</label>
     <div class="form-group">
-      <label for="suspval">Student Suspensions in last 6 months</label>
-      <input type="text" id="suspval" name='susp' placeholder="[-3,3]">
+      <select name = "susp" id=susp">
+      <option selected>0</option>
+      <option>1-2</option>
+      <option>3-6</option>
+      <option>7-9</option>
+      <option>10+</option>
+      </select>
     </div>
+      <label for="skipval">Student Classes Skipped in last 6 months:</label>
     <div class="form-group">
-      <label for="skipval">Student Classes Skipped in last 6 months</label>
-      <input type="text" id="skipval" name='skip' placeholder="[-3,3]">
+      <select name = "skip" id=skip">
+      <option>0</option>
+      <option selected>1-2</option>
+      <option>3-6</option>
+      <option>7-9</option>
+      <option>10+</option>
+      </select>
     </div>
+      <label for="testname">Number of Student Absences in last 6 months:</label>
     <div class="form-group">
-      <label for="behavior">Student Absences in last 6 Months</label>
-      <input type="text" id="behavior" name='absent' placeholder="[-3,3]">
+      <select name = "absent" id=absent">
+      <option>0</option>
+      <option selected>1-2</option>
+      <option>3-6</option>
+      <option>7-9</option>
+      <option>10+</option>
+      </select>
     </div>
+      <label for="testname2">Student Age in 3rd Year:</label>
     <div class="form-group">
-      <label for="age">Student Age</label>
-      <input type="text" id="age" name='age1' placeholder="[0,6]">
+      <select name = "age" id=age">
+      <option>15 and under</option>
+      <option >16</option>
+      <option selected>17</option>
+      <option>18</option>
+      <option>19</option>
+      <option>20</option>
+      <option>21</option>
+      <option>22+</option>
+      </select>
     </div>
+      <label for="testname3">Number of High Schools Attended:</label>
     <div class="form-group">
-      <label for="numhs">Number of High Schools Attended</label>
-      <input type="text" id="numhs" name='numhs' placeholder="[1,6]">
+      <select name = "numhs" id=numhs">
+      <option selected>1</option>
+      <option>2</option>
+      <option>3</option>
+      <option>4</option>
+      <option>5+</option>
+      </select>
     </div>
+      <label for="testname4">Number of Friends who have left:</label>
     <div class="form-group">
-      <label for="frdrop">Number of Non-Completing Friends</label>
-      <input type="text" id="frdrop" name='frdrop' placeholder="[0,6]">
+      <select name = "frdrop" id="frdrop">
+      <option selected> 0</option>
+      <option>1</option>
+      <option>2</option>
+      <option>3</option>
+      <option>4+</option>
+      </select>
     </div>
+      <label for="testname5">Socio-Economic Status:</label>
     <div class="form-group">
-      <label for="SES">Socio-Economic Factor</label>
-      <input type="text" id="SES" name='SES' placeholder="[-3,3]">
+      <select name = "SES" id="SES">
+      <option>-2.0 to -1.5</option>
+      <option selected>-1.5 to -1.0</option>
+      <option>-1.0 to -0.5</option>
+      <option>-0.5 to 0</option>
+      <option>0 to 0.5</option>
+      <option>0.5 to 1.0</option>
+      <option>1.5 to 2.0</option>
+      </select>
     </div>
+      <label for="testname6">Size of Student Household:</label>
     <div class="form-group">
-      <label for="hhnumval">Size of Student Household</label>
-      <input type="text" id="hhnumval" name='hhnum' placeholder="[-3,3]">
+      <select name = "hhnum" id="hh">
+      <option>2</option>
+      <option selected>3</option>
+      <option>4</option>
+      <option>5</option>
+      <option>6</option>
+      <option>7</option>
+      <option>8+</option>
+      </select>
     </div>
-    <div class="form-group">
-      <label for="dropprogval">Does the school have a dropout prevention program?</label>
-      <input type="text" id="dropprogval" name='dropprog' placeholder="yes">
-    </div>
-  <div>
+    <div>
     <button type="submit" class="btn btn-default btn-lg">Evaluate Risk</button>
-  </div>
+    </div>
+  
+
+
 
  </form>
-    </div>
+ </div>
+ <div class = "container">
+ <div class="dropdown">
+    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown">
+      Dropdown
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Action</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Another action</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Something else here</a></li>
+   </ul>
+   </div>
+  </div>
+
 
 </body>
