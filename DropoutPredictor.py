@@ -25,11 +25,11 @@ from sklearn.pipeline import Pipeline
 # setup options here
 import getopt
 
-def Predict_Final(ID = [12345], absent = [1],  math2 = [0.9774], 
+def Predict_Final(ID = [12345], absent = [1],  math2 = [3], 
                   age = [4],  ses = [1.518],
-                  skip = [0],  susp = [1.1],
-                  hhnum = [4],  frdrop = [0], 
-                  numhs = [1.3], dummy = [0] ):
+                  skip = [0],  susp = [1],
+                  hhnum = [3],  frdrop = [0], 
+                  numhs = [1], dummy = [0] ):
 
 
   with open('DropModel.p','r') as f:
@@ -38,7 +38,30 @@ def Predict_Final(ID = [12345], absent = [1],  math2 = [0.9774],
     #two coeff are zero--why?
 
   #Make a dataframe from the input data, this comes from the web entry form
-  's2absent', 'x2txmquint', 's2birthyr', 's2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch', 's2skipclass', 's2inschsusp', 'x2ses', 'x1locale'
+  #preprocess = 
+  means = [2.4947,3.2684,5.5425, 0.4076, 1.1852, 4.2443, 0.6581, 2.1756, 1.2964, 1.14, 0.1198, 2.3091]
+  std = [1.0523, 1.3852, 0.616, 0.9477, 0.4625, 1.457, 0.8877, 1.1310, 0.7626, 0.4694, 0.7488, 1.1337]
+  for i in absent:
+    i = (i-means[0])/std[0]
+  for i in math2:
+    i = (i-means[1])/std[1]
+  for i in age:
+    i = (i-means[2])/std[2]
+  for i in frdrop:
+    i = (i-means[3])/std[3]
+  for i in numhs:
+    i = (i-means[4])/std[4]
+  for i in hhnum:
+    i = (i-means[5])/std[5]
+  for i in skip:
+    i = (i-means[8])/std[8]
+  for i in susp:
+    i = (i-means[9])/std[9]
+  for i in ses:
+    i = (i-means[10])/std[10]
+
+
+ 
   data = {
           's2absent' : absent,
           'x2txmquint' : math2,
@@ -104,21 +127,21 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=True, studentIDs=[101
   
   df2 = dfBig.loc[dfBig['s2enrollhs12']>0]
   df3 = df2.loc[df2['s2enrollhs12']<3]
-  df4 = df3.loc[df3['x2txmth']>-8] 
+  df4 = df3.loc[df3['s2satnum']>-8] 
   df5 = df4.loc[df4['s2absent']>-1]
   df6 = df5.loc[df5['x2ses']>-8]
   df7 = df6.loc[df6['s2birthyr']>-1]  
   df8 = df7.loc[df7['x1txmth']>-8]  
-  df9 = df8.loc[df8['x1paredu']>-1]  
-  df12 = df9.loc[df9['x2behavein']>-8]  
-  df13 = df12.loc[df12['x1txmquint']>-8]  
+  df9 = df8.loc[df8['x2numhs']>-1]  
+  df10 = df9.loc[df9['x2behavein']>-8]  
+  df11 = df10.loc[df10['s2inschsusp']>-8]  
+  df12 = df11.loc[df11['s2latesch']>-8]  
+  df13 = df12.loc[df12['s2skipclass']>-8]  
   df14 = df13.loc[df13['s2frdropout']>-8]  
-  df15 = df14.loc[df14['s2satnum']>-8]  
-  df16 = df15.loc[df15['x2hhnumber']>-8]  
-  df18 = df16.loc[df16['x2txmquint']>-8]  
+  df16 = df14.loc[df14['x2hhnumber']>-8]  
+  df17 = df16.loc[df16['x2txmquint']>-8]  
+  df18 = df17.loc[df17['x1locale']>-8]  
   print df18.shape[0]
-  Weights = df18['w1student'].tolist()
-  df18.multiply(df18['w1student'],axis = 'index')
   #Make separate df for dropouts and not dropouts
   df_0 = df18.loc[df18['s2enrollhs12']==1] 
   df_1 = df18.loc[df18['s2enrollhs12']==2] 
@@ -333,15 +356,18 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=True, studentIDs=[101
   #Do the RF Classification here
   Y = df['s2enrollhs12'].get_values()
   df = df18[['stu_id', 's2enrollhs12', 's2absent',  'x2txmquint', 's2birthyr','s2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch','s2skipclass','s2inschsusp', 'x2ses' , 'x1locale'  ]]
+
   Xcol = df[df.columns[df.columns.isin(['s2absent',  'x2txmquint', 's2birthyr','s2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch','s2skipclass','s2inschsusp',   'x2ses' , 'x1locale', ])]].columns
   print Xcol, 'Xcol'
-  X = df[df.columns[df.columns.isin(['s2absent',  'x2txmquint', 's2birthyr','s2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch','s2skipclass','s2inschsusp',   'x2ses' , 'x1locale' ])]].get_values()
+  X_ = df[df.columns[df.columns.isin(['s2absent',  'x2txmquint', 's2birthyr','s2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch','s2skipclass','s2inschsusp',   'x2ses' , 'x1locale' ])]].get_values()
+
   #set up RF
   cross_validation_object = cross_validation.StratifiedKFold(Y, n_folds = 5)
   features = df[df.columns[df.columns.isin(['s2absent',  'x2txmquint', 's2birthyr','s2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch','s2skipclass','s2inschsusp',  'x2ses' , 'x1locale'])]].columns.tolist()
 
-  X = preprocessing.normalize(X, norm='l1')
-
+  Scale = preprocessing.StandardScaler().fit(X_)
+  print Scale.get_params()
+  X = Scale.transform(X_)
   def BestFeat(x,feat,top_ten_indices):
     location = np.where(np.array(feat) == x)
     if location in top_ten_indices[0:10]:
@@ -374,7 +400,7 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=True, studentIDs=[101
   CoefList = []
   for train,test in cross_validation_object:
     #log_fit = LogisticRegression(C=0.15, penalty = 'l1', class_weight = 'auto')
-    log_fit = LogisticRegression(C=1, penalty = 'l1', class_weight = 'auto')
+    log_fit = LogisticRegression(C=.07, penalty = 'l1', class_weight = 'auto')
     log_fit.fit(X[train], Y[train])
     
     probs = log_fit.predict_proba(X[test])
@@ -405,7 +431,7 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=True, studentIDs=[101
   X_new_train, X_new_test = X_new[:half], X_new[half:]
   Y_new_train, Y_new_test = Y_new[:half], Y_new[half:]
 
-  final_model = LogisticRegression(C=1,penalty = 'l1', class_weight = 'auto')
+  final_model = LogisticRegression(C=.07,penalty = 'l1', class_weight = 'auto')
   final_model.fit(X_new_train,Y_new_train)
   probs = final_model.predict_proba(X_new_test)
   preds = final_model.predict(X_new_test)
