@@ -12,6 +12,7 @@ import pylab as pl
 
 # Classifiers 
 from sklearn import cross_validation
+from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier # random forest
 from sklearn.grid_search import GridSearchCV # hyperparameter grid search to find best model parameters
 from sklearn import preprocessing # preprocess string labels into numerics
@@ -116,7 +117,8 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=True, studentIDs=[101
   df16 = df15.loc[df15['x2hhnumber']>-8]  
   df18 = df16.loc[df16['x2txmquint']>-8]  
   print df18.shape[0]
-
+  Weights = df18['w1student'].tolist()
+  df18.multiply(df18['w1student'],axis = 'index')
   #Make separate df for dropouts and not dropouts
   df_0 = df18.loc[df18['s2enrollhs12']==1] 
   df_1 = df18.loc[df18['s2enrollhs12']==2] 
@@ -335,8 +337,10 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=True, studentIDs=[101
   print Xcol, 'Xcol'
   X = df[df.columns[df.columns.isin(['s2absent',  'x2txmquint', 's2birthyr','s2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch','s2skipclass','s2inschsusp',   'x2ses' , 'x1locale' ])]].get_values()
   #set up RF
-  cross_validation_object = cross_validation.StratifiedKFold(Y, n_folds = 4)
+  cross_validation_object = cross_validation.StratifiedKFold(Y, n_folds = 5)
   features = df[df.columns[df.columns.isin(['s2absent',  'x2txmquint', 's2birthyr','s2frdropout', 'x2numhs', 'x2hhnumber', 's2satnum', 's2latesch','s2skipclass','s2inschsusp',  'x2ses' , 'x1locale'])]].columns.tolist()
+
+  X = preprocessing.normalize(X, norm='l1')
 
   def BestFeat(x,feat,top_ten_indices):
     location = np.where(np.array(feat) == x)
@@ -367,14 +371,19 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=True, studentIDs=[101
 
   #Test LogiReg
   print 'now try logistic regression'
+  CoefList = []
   for train,test in cross_validation_object:
-    log_fit = LogisticRegression(C=0.15, penalty = 'l1', class_weight = 'auto')
+    #log_fit = LogisticRegression(C=0.15, penalty = 'l1', class_weight = 'auto')
+    log_fit = LogisticRegression(C=1, penalty = 'l1', class_weight = 'auto')
     log_fit.fit(X[train], Y[train])
     
     probs = log_fit.predict_proba(X[test])
     preds1 = log_fit.predict(X[test] )
     print pd.crosstab(Y[test], preds1, rownames = ['actual'], colnames = ['pred'])
-
+    fpr, tpr, thresh = roc_curve(Y[test], probs[:,1], pos_label=2)
+    roc_auc = auc(fpr,tpr)
+    print 'Area under the ROC curve: %f' % roc_auc
+    CoefList.append(log_fit.coef_)
 
 
   #Dump These features to pk
@@ -388,17 +397,15 @@ def Predict(SampleSize=10000, studentID = 10111, MakePlots=True, studentIDs=[101
     best_features = pk.load(f)
 
   X_new = X 
-  #X_new = df[df.columns[df.columns.isin(best_features)]]
   Y_new = Y
 
 
-  #Set a final model
+  #Set a final model, an ensemble not needed as we just want high recall, precision not as important
   half = int(X_new.shape[0]*.75)
   X_new_train, X_new_test = X_new[:half], X_new[half:]
   Y_new_train, Y_new_test = Y_new[:half], Y_new[half:]
 
-  final_model = LogisticRegression(C=0.07,penalty = 'l1', class_weight = 'auto')
-  #final_model = LogisticRegression(C=1,penalty = 'l1', class_weight = 'auto')
+  final_model = LogisticRegression(C=1,penalty = 'l1', class_weight = 'auto')
   final_model.fit(X_new_train,Y_new_train)
   probs = final_model.predict_proba(X_new_test)
   preds = final_model.predict(X_new_test)
